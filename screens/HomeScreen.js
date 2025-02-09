@@ -1,38 +1,28 @@
 // screens/HomeScreen.js
-import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import React, {useState, useEffect} from 'react';
 import {
     View,
-    Text,
     StyleSheet,
     ScrollView,
     TextInput,
     Animated,
     TouchableOpacity,
     FlatList,
+    Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform
 } from 'react-native';
-import { COLORS, CATEGORIES } from '../styles/theme';
+import {COLORS, CATEGORIES} from '../styles/theme';
 import RecipeCard from '../components/RecipeCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
-import {StorageService} from "../utils/storage";
+import {useNavigation} from '@react-navigation/native';
 import {CategoryChip} from "../components/CategoryChip";
+import {useRecipes} from "../context/RecipeContext";
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const [recipes, setRecipes] = useState([]);
+    const {recipes, refreshRecipes, deleteRecipe, loading, selectRecipe} = useRecipes();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [scrollY] = useState(new Animated.Value(0));
-    const [refreshing, setRefreshing] = useState(false);
-
-    // Animation pour le header
-    const headerHeight = scrollY.interpolate({
-        inputRange: [0, 100],
-        outputRange: [200, 120],
-        extrapolate: 'clamp',
-    });
 
     const searchBarOpacity = scrollY.interpolate({
         inputRange: [0, 100],
@@ -52,120 +42,85 @@ const HomeScreen = () => {
                 selectedCategories.length === 0 ||
                 (Array.isArray(recipe.category) && recipe.category.some(category => selectedCategories.includes(category)));
 
-            console.log('recipe.category', recipe.category)
-            console.log('selectedCategories', selectedCategories)
-
-            //return matchesSearch && matchesCategory;
-            return  matchesCategory;
+            return matchesSearch && matchesCategory;
         });
     };
 
-    const fetchRecipes = async () => {
-        try {
-            const storedRecipes = await AsyncStorage.getItem('@recipes');
-            if (storedRecipes) {
-                setRecipes(JSON.parse(storedRecipes));
-            }
-        } catch (error) {
-            console.error('Erreur lors du chargement des recettes :', error);
-        }
+    const handleRecipePress = (recipe) => {
+        selectRecipe(recipe);  // Mettre à jour le contexte avec la recette sélectionnée
+        navigation.navigate('RecipeDetail');  // Naviguer vers la page de détails
     };
-
-    useEffect(() => {
-        fetchRecipes();
-    }, []);
-
-    const deleteRecipe = async (id) => {
-        try {
-            const updatedRecipes = recipes.filter(recipe => recipe.id !== id);
-            setRecipes(updatedRecipes);
-            await AsyncStorage.setItem('@recipes', JSON.stringify(updatedRecipes));
-        } catch (error) {
-            console.error('Erreur lors de la suppression de la recette :', error);
-        }
-    };
-
-
-    /*const CategoryChip = ({ category, isSelected, onPress }) => (
-        <TouchableOpacity
-            onPress={onPress}
-            style={[
-                styles.categoryChip,
-                isSelected && { backgroundColor: COLORS.primary }
-            ]}
-        >
-            <Text style={[
-                styles.categoryLabel,
-                isSelected && { color: COLORS.card }
-            ]}>
-                {category.icon} {category.label}
-            </Text>
-        </TouchableOpacity>
-    );*/
 
     return (
-        <View style={styles.container}>
-            <Animated.View style={[styles.header, { height: headerHeight }]}>
-                <Animated.View style={[styles.searchContainer, { opacity: searchBarOpacity }]}>
-                    <Icon name="search" size={24} color={COLORS.textLight} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Rechercher une recette ou un ingrédient..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{flex: 1}}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.container}>
+                    <Animated.View style={[styles.header]}>
+                        <Animated.View style={[styles.searchContainer, {opacity: searchBarOpacity}]}>
+                            <Icon name="search" size={24} color={COLORS.textLight}/>
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder="Rechercher une recette"
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                            />
+                        </Animated.View>
+
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.categoriesContainer}
+                        >
+                            {CATEGORIES.map(category => (
+                                <CategoryChip
+                                    key={category.id}
+                                    category={category}
+                                    isSelected={selectedCategories.includes(category.id)}
+                                    onPress={() => {
+                                        setSelectedCategories(prev =>
+                                            prev.includes(category.id)
+                                                ? prev.filter(id => id !== category.id)
+                                                : [...prev, category.id]
+                                        );
+                                    }}
+                                />
+                            ))}
+                        </ScrollView>
+                    </Animated.View>
+
+                    <FlatList
+                        data={filterRecipes()}
+                        renderItem={({item}) => (
+                            <RecipeCard
+                                recipe={item}
+                                onPress={() => handleRecipePress(item)}  // Utiliser la nouvelle fonction handleRecipePress
+                                onEdit={() => navigation.navigate('AddOrEditRecipe', {recipe: item})}
+                                onDelete={() => deleteRecipe(item.id)}
+                            />
+                        )}
+                        keyExtractor={item => item.id}
+                        keyboardShouldPersistTaps="handled"
+                        contentContainerStyle={styles.recipesList}
+                        onScroll={Animated.event(
+                            [{nativeEvent: {contentOffset: {y: scrollY}}}],
+                            {useNativeDriver: false}
+                        )}
+                        refreshing={loading}
+                        onRefresh={refreshRecipes}
                     />
-                </Animated.View>
 
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.categoriesContainer}
-                >
-                    {CATEGORIES.map(category => (
-                        <CategoryChip
-                            key={category.id}
-                            category={category}
-                            isSelected={selectedCategories.includes(category.id)}
-                            onPress={() => {
-                                setSelectedCategories(prev =>
-                                    prev.includes(category.id)
-                                        ? prev.filter(id => id !== category.id)
-                                        : [...prev, category.id]
-                                );
-                            }}
-                        />
-                    ))}
-                </ScrollView>
-            </Animated.View>
-
-            <FlatList
-                data={filterRecipes()}
-                renderItem={({ item }) => (
-                    <RecipeCard
-                        recipe={item}
-                        onPress={() => navigation.navigate('RecipeDetail', { recipe: item })}
-                        onEdit={() => navigation.navigate('EditRecipe', { recipe: item })}
-                        onDelete={() => deleteRecipe(item.id)}
-                    />
-                )}
-                keyExtractor={item => item.id}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.recipesList}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                    { useNativeDriver: false }
-                )}
-                refreshing={refreshing}
-                onRefresh={fetchRecipes} // Action déclenchée en tirant vers le bas
-            />
-
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => navigation.navigate('AddRecipe')}
-            >
-                <Icon name="add" size={30} color={COLORS.card} />
-            </TouchableOpacity>
-        </View>
+                    <TouchableOpacity
+                        style={styles.fab}
+                        onPress={() => navigation.navigate('AddOrEditRecipe')}
+                    >
+                        <Icon name="add" size={30} color={COLORS.card}/>
+                    </TouchableOpacity>
+                </View>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -175,9 +130,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     header: {
-        backgroundColor: COLORS.primary,
-        padding: 16,
-        paddingTop: 60,
+        //backgroundColor: COLORS.primary,
+        paddingVertical: 20,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -187,23 +141,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        marginHorizontal: 20,
     },
     searchInput: {
         flex: 1,
         marginLeft: 8,
         fontSize: 16,
+        paddingRight: 8,
         color: COLORS.text,
     },
     categoriesContainer: {
         marginTop: 8,
+        paddingLeft: 20,
     },
-    recipesList: {
-        paddingHorizontal: 8,
-    },
+    recipesList: {},
     fab: {
         position: 'absolute',
         bottom: 24,
@@ -215,7 +170,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,

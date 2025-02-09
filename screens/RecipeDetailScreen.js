@@ -1,5 +1,5 @@
 // screens/RecipeDetailScreen.js
-import React, { useRef } from 'react';
+import React, {useRef, useEffect} from 'react';
 import {
     View,
     Text,
@@ -11,11 +11,29 @@ import {
     Share,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../styles/theme';
+import {COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, CATEGORIES} from '../styles/theme';
+import {useRecipes} from "../context/RecipeContext";
 
-const RecipeDetailScreen = ({ route, navigation }) => {
-    const { recipe } = route.params;
+const RecipeDetailScreen = ({route, navigation}) => {
+    //const {recipe} = route.params;
+    const {selectedRecipe} = useRecipes(); // Utiliser le contexte pour récupérer la recette actuelle
+    const [recipe, setRecipe] = React.useState();
     const scrollY = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (selectedRecipe) {
+            setRecipe(selectedRecipe);
+        }
+    }, [selectedRecipe]);
+
+    if (!recipe) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.errorMessage}>Aucune recette disponible</Text>
+            </View>
+        );
+    }
+
 
     const headerHeight = scrollY.interpolate({
         inputRange: [0, 200],
@@ -56,12 +74,12 @@ const RecipeDetailScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Animated.View style={[styles.header, { height: headerHeight }]}>
+            <Animated.View style={[styles.header, {height: headerHeight}]}>
                 <Animated.Image
-                    source={{ uri: recipe.image }}
-                    style={[styles.headerImage, { opacity: imageOpacity }]}
+                    source={{uri: recipe.image}}
+                    style={[styles.headerImage, {opacity: imageOpacity}]}
                 />
-                <Animated.View style={[styles.titleContainer, { transform: [{ translateY: titleTranslateY }] }]}>
+                <Animated.View style={[styles.titleContainer]}>
                     <Text style={styles.title}>{recipe.name}</Text>
                     <View style={styles.metadata}>
                         <Text style={styles.metadataText}>🕒 {recipe.totalTime} min</Text>
@@ -70,19 +88,39 @@ const RecipeDetailScreen = ({ route, navigation }) => {
                 </Animated.View>
             </Animated.View>
 
+
             <Animated.ScrollView
                 onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                    { useNativeDriver: false }
+                    [{nativeEvent: {contentOffset: {y: scrollY}}}],
+                    {useNativeDriver: false}
                 )}
                 scrollEventThrottle={16}
-                style={styles.content}
+                contentContainerStyle={styles.content}
             >
+
+                {/* Section des Catégories */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Catégories</Text>
+                    <View style={styles.categoriesContainer}>
+                        {recipe.category && recipe.category.length > 0 ? (
+                            recipe.category.map((cat, index) => (
+                                <View key={index} style={styles.categoryChip}>
+                                    <Text style={[styles.categoryLabel]}>
+                                        {CATEGORIES.find(c => c.id === cat).icon} {CATEGORIES.find(c => c.id === cat).label}
+                                    </Text>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={styles.categoryText}>Aucune catégorie</Text>
+                        )}
+                    </View>
+                </View>
+
                 <View style={styles.nutritionCard}>
                     <Text style={styles.sectionTitle}>Valeurs nutritionnelles</Text>
                     <View style={styles.nutritionGrid}>
                         <View style={styles.nutritionItem}>
-                            <Text style={styles.nutritionValue}>{recipe.macros.calories}</Text>
+                            <Text style={styles.nutritionValue}>{recipe.macros.calories}kcal</Text>
                             <Text style={styles.nutritionLabel}>Calories</Text>
                         </View>
                         <View style={styles.nutritionItem}>
@@ -124,16 +162,16 @@ const RecipeDetailScreen = ({ route, navigation }) => {
 
             <View style={styles.actionButtons}>
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
-                    onPress={() => navigation.navigate('EditRecipe', { recipe })}
+                    style={[styles.actionButton, {backgroundColor: COLORS.primary}]}
+                    onPress={() => navigation.navigate('AddOrEditRecipe', {recipe})}
                 >
-                    <Icon name="edit" size={24} color={COLORS.card} />
+                    <Icon name="edit" size={24} color={COLORS.card}/>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: COLORS.accent }]}
+                    style={[styles.actionButton, {backgroundColor: COLORS.accent}]}
                     onPress={shareRecipe}
                 >
-                    <Icon name="share" size={24} color={COLORS.card} />
+                    <Icon name="share" size={24} color={COLORS.card}/>
                 </TouchableOpacity>
             </View>
         </View>
@@ -157,19 +195,44 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         position: 'absolute',
+        zIndex: -1,  // Assure que l'image reste derrière le texte
     },
     titleContainer: {
         position: 'absolute',
         bottom: SPACING.md,
         left: SPACING.md,
         right: SPACING.md,
+        zIndex: 2,  // Assure que le texte reste au-dessus de l'image
     },
     title: {
         ...TYPOGRAPHY.h1,
         color: COLORS.card,
         textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 1 },
+        textShadowOffset: {width: 0, height: 1},
         textShadowRadius: 3,
+    },
+    categoriesContainer:{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap:10
+    },
+    categoryChip: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    categoryLabel: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '500',
     },
     metadata: {
         flexDirection: 'row',
@@ -180,12 +243,11 @@ const styles = StyleSheet.create({
         color: COLORS.card,
         marginRight: SPACING.md,
         textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 1 },
+        textShadowOffset: {width: 0, height: 1},
         textShadowRadius: 3,
     },
     content: {
-        flex: 1,
-        marginTop: 300,
+        marginTop: 300,  // Assure que le contenu commence sous l'image
         backgroundColor: COLORS.background,
         borderTopLeftRadius: RADIUS.lg,
         borderTopRightRadius: RADIUS.lg,

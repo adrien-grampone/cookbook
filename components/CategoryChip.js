@@ -7,12 +7,12 @@ export const CategoryChip = ({ category, isSelected, onPress }) => (
         onPress={onPress}
         style={[
             styles.categoryChip,
-            isSelected && { backgroundColor: COLORS.primary }
+            isSelected && { backgroundColor: COLORS.accent }
         ]}
     >
         <Text style={[
             styles.categoryLabel,
-            isSelected && { color: COLORS.card }
+            isSelected && { color: COLORS.card}
         ]}>
             {category.icon} {category.label}
         </Text>
@@ -21,11 +21,11 @@ export const CategoryChip = ({ category, isSelected, onPress }) => (
 
 const styles = StyleSheet.create({
     categoryChip: {
-        backgroundColor: COLORS.card,
+        backgroundColor: COLORS.surface,
         borderRadius: 20,
         paddingHorizontal: 16,
         paddingVertical: 8,
-        marginRight: 8,
+        marginRight: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     categoryLabel: {
-        color: COLORS.text,
+        color: '#000',
         fontSize: 14,
         fontWeight: '500',
     },

@@ -1,6 +1,6 @@
 // utils/storage.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Recipe } from '../models/Recipe';
+import {Recipe} from '../models/Recipe';
 
 const STORAGE_KEY = '@recipes';
 
@@ -16,8 +16,6 @@ export const StorageService = {
                 existingRecipes.push(new Recipe(recipe));
             }
 
-            console.log(existingRecipes);
-
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(existingRecipes));
             return true;
         } catch (error) {
@@ -32,7 +30,11 @@ export const StorageService = {
             if (!recipesJson) return [];
 
             const recipes = JSON.parse(recipesJson);
+
+            recipes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
             return recipes.map(recipe => new Recipe(recipe));
+
         } catch (error) {
             console.error('Error getting recipes:', error);
             return [];
