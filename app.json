@@ -29,7 +29,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Cette application nécessite l'accès à la caméra pour prendre des photos de recettes.",
         "NSMicrophoneUsageDescription": "Cette application nécessite l'accès au microphone pour enregistrer des vidéos."
-      }
+      },
+      "runtimeVersion": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -38,8 +39,20 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION"
+      ],
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "package": "com.adrien.grampone.cookbook"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -49,6 +62,9 @@
         "projectId": "1d0bcf71-dc33-4f4d-a5f7-a515c6e6730b"
       }
     },
-    "owner": "adrien.grampone"
+    "owner": "adrien.grampone",
+    "updates": {
+      "url": "https://u.expo.dev/1d0bcf71-dc33-4f4d-a5f7-a515c6e6730b"
+    }
   }
 }
