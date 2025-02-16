@@ -1,10 +1,11 @@
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-    apiKey: process.env.OPEN_AI_API_KEY,
+    apiKey: process.env.EXPO_PUBLIC_API_OPENAI_KEY
 });
 
 export const generateRecipe = async (description) => {
+
     const prompt = `
     Voici une description de recette :
     "${description}"

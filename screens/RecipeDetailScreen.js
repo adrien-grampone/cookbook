@@ -106,7 +106,7 @@ const RecipeDetailScreen = ({route, navigation}) => {
                             recipe.category.map((cat, index) => (
                                 <View key={index} style={styles.categoryChip}>
                                     <Text style={[styles.categoryLabel]}>
-                                        {CATEGORIES.find(c => c.id === cat).icon} {CATEGORIES.find(c => c.id === cat).label}
+                                        {CATEGORIES.find(c => c.id === cat)?.icon} {CATEGORIES.find(c => c.id === cat)?.label}
                                     </Text>
                                 </View>
                             ))
