@@ -199,60 +199,6 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
         }
     };
 
-    /*const handleSaveRecipe = async () => {
-        try {
-            const recipeData = {
-                ...formData,
-                id: editingRecipe?.id || Date.now().toString(), // Si c'est une nouvelle recette, générer un ID unique
-                createdAt: editingRecipe?.createdAt || new Date(), // Si c'est une nouvelle recette, ajouter une date de création
-                updatedAt: new Date(), // Mettre à jour la date à chaque modification
-            };
-
-            console.log(recipeData, 'recipeData');
-
-            const success = await StorageService.saveRecipe(recipeData);
-
-            if (success) {
-                addRecipe(recipeData); // Ajouter la recette au contexte
-                navigation.goBack(); // Retourner à l'écran précédent
-            } else {
-                console.error('Erreur lors de l\'ajout de la recette');
-            }
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la recette', error);
-        }
-    };*/
-
-
-    /* const renderIngredientInput = (ingredient, index) => (
-         <Animated.View
-             key={index}
-             style={[styles.ingredientContainer, {
-                 opacity: 1,
-             }]}
-         >
-             <TextInput
-                 style={styles.ingredientName}
-                 placeholder="Ingrédient"
-                 value={ingredient.name}
-                 onChangeText={(value) => updateIngredient(index, 'name', value)}
-             />
-             <TextInput
-                 style={styles.ingredientAmount}
-                 placeholder="Quantité"
-                 keyboardType="numeric"
-                 value={ingredient.amount}
-                 onChangeText={(value) => updateIngredient(index, 'amount', value)}
-             />
-             <TextInput
-                 style={styles.ingredientUnit}
-                 placeholder="Unité"
-                 value={ingredient.unit}
-                 onChangeText={(value) => updateIngredient(index, 'unit', value)}
-             />
-         </Animated.View>
-     );*/
-
     return (
         <KeyboardAvoidingView
             style={styles.container}
@@ -433,7 +379,6 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
                                 </View>
                             </View>
                         </View>
-
 
                         <TouchableOpacity
                             style={styles.submitButton}

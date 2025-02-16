@@ -32,7 +32,7 @@ export const RecipeProvider = ({ children }) => {
         try {
             const recipeData = {
                 ...formData,
-                id: selectedRecipe?.id || Date.now().toString(),
+                id: selectedRecipe?.id || new Date().toISOString(),
                 createdAt: selectedRecipe?.createdAt || new Date(),
                 updatedAt: new Date(),
             };

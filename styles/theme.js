@@ -52,7 +52,7 @@ export const TYPOGRAPHY = {
         letterSpacing: 0.5,
     },
     h2: {
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: '600',
         letterSpacing: 0.3,
     },
@@ -126,3 +126,4 @@ export const UNITS = [
     { id: 'tasse', label: 'tasse(s)', icon: '🍵' },
     { id: 'verre', label: 'verre(s)', icon: '🥤' },
 ];
+
