@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity, Alert} from 'react-native';
+import {View, Text, ImageBackground, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {SwipeRow} from 'react-native-swipe-list-view';
 import {CATEGORIES, COLORS} from "../styles/theme";
+import CategoryDisplay from "./CategoryDisplay";
 
 const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
 
@@ -11,156 +12,165 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
             "Supprimer la recette",
             "Êtes-vous sûr de vouloir supprimer cette recette ?",
             [
-                { text: "Annuler", style: "cancel" },
-                { text: "Supprimer", onPress: () => onDelete(recipe.id), style: "destructive" }
+                {text: "Annuler", style: "cancel"},
+                {text: "Supprimer", onPress: () => onDelete(recipe.id), style: "destructive"}
             ]
         );
     };
 
-    return (
-        <SwipeRow rightOpenValue={-160}>
-            {/* Action Buttons */}
+    {
+        /* <SwipeRow rightOpenValue={-140} style={styles.card}>
             <View style={styles.hiddenRow}>
                 <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={() => onEdit(recipe)}>
                     <Icon name="edit" size={24} color="white"/>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]}
-                                  onPress={() => confirmDelete()}>
+                <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={confirmDelete}>
                     <Icon name="delete" size={24} color="white"/>
                 </TouchableOpacity>
             </View>
+            <TouchableOpacity activeOpacity={0.85} onPress={onPress} >
+                <ImageBackground
+                    source={recipe.image ? {uri: recipe.image} : require('../assets/icon.png')}
+                    style={styles.imageBackground}
+                    imageStyle={styles.image}
+                >
+                </ImageBackground>
 
-            {/* Recipe Card */}
-            <TouchableOpacity activeOpacity={1} onPress={onPress} style={styles.card}>
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={recipe.image ? {uri: recipe.image} : require('../assets/icon.png')}
-                        style={styles.image}
-                    />
-                </View>
                 <View style={styles.content}>
-                    {/*recipe.category?.length > 0 && (
-                        <View style={styles.categoryBadge}>
-                            {
-                                recipe.category
-                                    .map(categorie => CATEGORIES.find(cat => cat.id === categorie)?.icon)
-                                    .filter(Boolean)
-                                    .map((icon, index) => (
-                                        <Text key={index} style={styles.categoryIcon}>{icon}</Text>
-                                    ))
-                            }
+                    <Text style={styles.title} numberOfLines={2}>{recipe.name}</Text>
+                    {recipe.macros && (
+                        <View style={styles.macros}>
+                            {recipe.macros.calories &&
+                                <Text style={styles.macroBadge}>🔥 {recipe.macros.calories} kcal</Text>}
+                            {recipe.macros.protein && <Text style={styles.macroBadge}>🥩 {recipe.macros.protein}g</Text>}
+                            {recipe.macros.fat && <Text style={styles.macroBadge}>🥑 {recipe.macros.fat}g</Text>}
+                            {recipe.macros.carbs && <Text style={styles.macroBadge}>🍚 {recipe.macros.carbs}g</Text>}
                         </View>
-                    )*/}
-                    <Text style={styles.title}>
-                        {recipe.name}
-                    </Text>
-                    <View style={styles.macros}>
-                        {recipe.macros && recipe.macros.calories && (
-                            <View style={styles.macroBox}>
-                                <Text style={styles.macroText}>🔥 {recipe.macros.calories} kcal</Text>
-                            </View>
-                        )}
-                        {recipe.macros && recipe.macros.protein && (
-                            <View style={styles.macroBox}>
-                                <Text style={styles.macroText}>🥩 {recipe.macros.protein}g</Text>
-                            </View>
-                        )}
-                        {recipe.macros && recipe.macros.fat && (
-                            <View style={styles.macroBox}>
-                                <Text style={styles.macroText}>🥑 {recipe.macros.fat}g</Text>
-                            </View>
-                        )}
-                        {recipe.macros && recipe.macros.carbs && (
-                            <View style={styles.macroBox}>
-                                <Text style={styles.macroText}>🍚 {recipe.macros.carbs}g</Text>
-                            </View>
-                        )}
-                    </View>
+                    )}
                 </View>
             </TouchableOpacity>
-        </SwipeRow>
+        </SwipeRow>*/
+    }
+
+    return (
+
+        <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.card}>
+            <ImageBackground
+                source={recipe.image ? {uri: recipe.image} : require('../assets/recipe-default.jpg')}
+                style={styles.imageBackground}
+                imageStyle={styles.image}
+            >
+                {recipe.category?.length > 0 && (
+                    <CategoryDisplay recipe={recipe}/>
+                )}
+            </ImageBackground>
+
+            <View style={styles.content}>
+                <Text style={styles.title}>{recipe.name}</Text>
+                {recipe.macros && (recipe.macros.calories || recipe.macros.protein || recipe.macros.fat || recipe.macros.carbs) && (
+                    <View style={styles.macros}>
+                        {recipe.macros.calories && <Text style={styles.macroBadge}>🔥 {recipe.macros.calories} kcal</Text>}
+                        {recipe.macros.protein && <Text style={styles.macroBadge}>🥩 {recipe.macros.protein}g</Text>}
+                        {recipe.macros.fat && <Text style={styles.macroBadge}>🥑 {recipe.macros.fat}g</Text>}
+                        {recipe.macros.carbs && <Text style={styles.macroBadge}>🍚 {recipe.macros.carbs}g</Text>}
+                    </View>
+                )}
+
+            </View>
+        </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: 'white',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        marginVertical: 10,
+        marginHorizontal: 5,
+        borderRadius: 20,
+        backgroundColor: COLORS.card,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 6},
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.08,
         shadowRadius: 10,
-        elevation: 5,
-        flexDirection: 'row',
-        overflow: 'hidden',
+        elevation: 6,
     },
-    imageContainer: {
-        position: 'relative',
-    },
-    categoryBadge: {
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        flexDirection: 'row',
-        alignSelf: 'flex-start',
-    },
-    categoryIcon: {
-        fontSize: 14,
-        color: 'white',
-        marginRight: 4,
-    },
-    image: {
-        width: 150,
-        height: 100,
-        marginRight: 16,
-        borderRadius: 8
-    },
-    content: {
-        flex: 1,
+    imageBackground: {
+        height: 180,
+        width: '100%',
         justifyContent: 'center',
     },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
-        color: '#333',
-    },
-    macros: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-    },
-    macroBox: {
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        marginRight: 8,
-        marginBottom: 4,
-    },
-    macroText: {
-        fontSize: 12,
-        color: '#666',
+    image: {
+        width: '100%',
+        height: '100%',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20
     },
     hiddenRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
         backgroundColor: '#fff',
-        overflow: 'hidden',
+        height: "100%",
     },
     actionButton: {
         justifyContent: 'center',
         alignItems: 'center',
         width: 70,
-        height: 100,
+        height: '100%',
     },
     editButton: {
-        backgroundColor: COLORS.accent
+        backgroundColor: COLORS.accent,
     },
     deleteButton: {
-        backgroundColor: COLORS.error
+        backgroundColor: COLORS.error,
+    },
+    content: {
+        padding: 12,
+        backgroundColor: "fff",
+    },
+    title: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: COLORS.text,
+        textAlign: 'center',
+    },
+    macros: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 6,
+        marginTop:10
+    },
+    macroBadge: {
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        color: COLORS.text,
+        fontSize: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+    },
+    categoryBadge: {
+        flexDirection: 'row',
+        alignSelf: 'flex-start',
+        position:'absolute',
+        left: 10,
+        top:-10
+    },
+    categoryChip: {
+        backgroundColor: COLORS.surface,
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        marginRight: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    categoryLabel: {
+        color: '#000',
+        fontSize: 14,
+        fontWeight: '500',
     },
 });
 
