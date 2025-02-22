@@ -404,7 +404,7 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
                                             style={styles.modalCloseButton}
                                             onPress={() => setModalVisible(false)}
                                         >
-                                            <Text style={styles.modalCloseText}>×</Text>
+                                            <Icon name="close" size={24} color={COLORS.text}/>
                                         </TouchableOpacity>
                                     </View>
                                     <FlatList
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
         borderBottomColor: COLORS.border,
     },
     modalTitle: {
-        ...TYPOGRAPHY.h3,
+        ...TYPOGRAPHY.h2,
         color: COLORS.text,
     },
     modalCloseButton: {

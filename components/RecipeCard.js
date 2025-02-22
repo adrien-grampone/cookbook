@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
     View,
     Text,
@@ -7,22 +7,51 @@ import {
     TouchableOpacity,
     Alert,
     Modal,
-    Pressable,
     Share,
     Vibration,
     Platform,
-    Animated
+    Animated,
+    TouchableWithoutFeedback
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from "../styles/theme";
-import { StorageService } from '../utils/storage';
-import CategoryDisplay from "./CategoryDisplay";
+import {COLORS, TYPOGRAPHY, SPACING, RADIUS} from "../styles/theme";
 import {useRecipes} from "../context/RecipeContext";
+import CategoryDisplay from "./CategoryDisplay";
 
-const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
-    const {handleDuplicateRecipe} = useRecipes(); // Utilisation du contexte pour ajouter une recette
+const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
+    const {handleDuplicateRecipe} = useRecipes();
     const [showActionModal, setShowActionModal] = useState(false);
     const scaleAnim = useRef(new Animated.Value(1)).current;
+    const backgroundAnim = useRef(new Animated.Value(0)).current;
+    const modalAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (showActionModal) {
+            Animated.timing(backgroundAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            Animated.spring(modalAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                speed: 20,
+                bounciness: 2,
+            }).start();
+        } else {
+            Animated.timing(backgroundAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+            Animated.spring(modalAnim, {
+                toValue: 0,
+                useNativeDriver: true,
+                speed: 20,
+                bounciness: 2,
+            }).start();
+        }
+    }, [showActionModal]);
 
     const startLongPressAnimation = () => {
         Vibration.vibrate(Platform.OS === 'ios' ? 50 : 20);
@@ -49,8 +78,8 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
             "Supprimer la recette",
             "Êtes-vous sûr de vouloir supprimer cette recette ?",
             [
-                { text: "Annuler", style: "cancel" },
-                { text: "Supprimer", onPress: () => onDelete(recipe.id), style: "destructive" }
+                {text: "Annuler", style: "cancel"},
+                {text: "Supprimer", onPress: () => onDelete(recipe.id), style: "destructive"}
             ]
         );
     };
@@ -70,7 +99,7 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
 
     const ActionModal = () => (
         <Modal
-            animationType="fade"
+            animationType="none"
             transparent={true}
             visible={showActionModal}
             onRequestClose={() => {
@@ -78,54 +107,63 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
                 endLongPressAnimation();
             }}
         >
-            <Pressable
-                style={styles.modalOverlay}
-                onPress={() => {
-                    setShowActionModal(false);
-                    endLongPressAnimation();
-                }}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => {
-                                handleDuplicateRecipe(recipe);
-                                setShowActionModal(false);
-                            }}
-                        >
-                            <Icon name="content-copy" size={22} color="#FFF" />
-                            <Text style={styles.actionText}>Dupliquer</Text>
-                        </TouchableOpacity>
+            <TouchableWithoutFeedback onPress={() => setShowActionModal(false)}>
+                <Animated.View style={[styles.modalOverlay, {opacity: backgroundAnim}]}>
+                    <Animated.View style={[styles.modalContent, {transform: [{translateY: modalAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [300, 0]
+                            })}]}]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>{recipe.name.split(' ').slice(0, 4).join(' ')}</Text>
+                            <TouchableOpacity
+                                style={styles.modalCloseButton}
+                                onPress={() => setShowActionModal(false)}
+                            >
+                                <Icon name="close" size={24} color={COLORS.text}/>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.actionButton}
+                                onPress={() => {
+                                    handleDuplicateRecipe(recipe);
+                                    setShowActionModal(false);
+                                }}
+                            >
+                                <Icon name="content-copy" size={22} color="#000"/>
+                                <Text style={styles.actionText}>Dupliquer</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={handleShare}
-                        >
-                            <Icon name="share" size={22} color="#FFF" />
-                            <Text style={styles.actionText}>Partager</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.actionButton}
+                                onPress={handleShare}
+                            >
+                                <Icon name="share" size={22} color="#000"/>
+                                <Text style={styles.actionText}>Partager</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={confirmDelete}
-                        >
-                            <Icon name="delete" size={22} color="#FF453A" />
-                            <Text style={styles.deleteText}>Supprimer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Pressable>
+                            <TouchableOpacity
+                                style={{...styles.actionButton, borderBottomWidth: 0}}
+                                onPress={confirmDelete}
+                            >
+                                <Icon name="delete" size={22} color="#FF453A"/>
+                                <Text style={styles.deleteText}>Supprimer</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </Animated.View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 
     return (
         <>
-            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <Animated.View style={{transform: [{scale: scaleAnim}]}}>
                 <TouchableOpacity
                     activeOpacity={1}
                     onPress={onPress}
-                    onPressIn={() => { }}
+                    onPressIn={() => {
+                    }}
                     onPressOut={endLongPressAnimation}
                     onLongPress={() => {
                         startLongPressAnimation();
@@ -135,21 +173,20 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
                     style={styles.card}
                 >
                     <ImageBackground
-                        source={recipe.image ? { uri: recipe.image } : require('../assets/recipe-default.jpg')}
+                        source={recipe.image ? {uri: recipe.image} : require('../assets/recipe-default.jpg')}
                         style={styles.imageBackground}
                         imageStyle={styles.image}
                     >
                         {recipe.category?.length > 0 && (
-                            <CategoryDisplay recipe={recipe} />
+                            <CategoryDisplay recipe={recipe}/>
                         )}
 
-                        {/* Bouton d'action en haut à droite */}
                         <TouchableOpacity
                             activeOpacity={1}
                             style={styles.actionIcon}
                             onPress={() => setShowActionModal(true)}
                         >
-                            <Icon name="more-vert" size={26} color="#000" />
+                            <Icon name="more-vert" size={22} color="#000"/>
                         </TouchableOpacity>
                     </ImageBackground>
 
@@ -157,8 +194,10 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
                         <Text style={styles.title}>{recipe.name}</Text>
                         {recipe.macros && (recipe.macros.calories || recipe.macros.protein || recipe.macros.fat || recipe.macros.carbs) && (
                             <View style={styles.macros}>
-                                {recipe.macros.calories && <Text style={styles.macroBadge}>🔥 {recipe.macros.calories} kcal</Text>}
-                                {recipe.macros.protein && <Text style={styles.macroBadge}>🥩 {recipe.macros.protein}g</Text>}
+                                {recipe.macros.calories &&
+                                    <Text style={styles.macroBadge}>🔥 {recipe.macros.calories} kcal</Text>}
+                                {recipe.macros.protein &&
+                                    <Text style={styles.macroBadge}>🥩 {recipe.macros.protein}g</Text>}
                                 {recipe.macros.fat && <Text style={styles.macroBadge}>🥑 {recipe.macros.fat}g</Text>}
                                 {recipe.macros.carbs && <Text style={styles.macroBadge}>🍚 {recipe.macros.carbs}g</Text>}
                             </View>
@@ -167,7 +206,7 @@ const RecipeCard = ({ recipe, onPress, onEdit, onDelete }) => {
                 </TouchableOpacity>
             </Animated.View>
 
-            <ActionModal />
+            <ActionModal/>
         </>
     );
 };
@@ -179,7 +218,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: COLORS.card,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
+        shadowOffset: {width: 0, height: 6},
         shadowOpacity: 0.08,
         shadowRadius: 10,
         elevation: 6,
@@ -201,13 +240,13 @@ const styles = StyleSheet.create({
         right: 10,
         backgroundColor: COLORS.surface,
         borderRadius: 20,
-        padding: 6,
+        padding: 5,
     },
     content: {
         padding: 12,
         backgroundColor: "#fff",
-        borderBottomEndRadius:20,
-        borderBottomStartRadius:20,
+        borderBottomEndRadius: 20,
+        borderBottomStartRadius: 20,
     },
     title: {
         fontSize: 16,
@@ -232,32 +271,44 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    },
-    modalContainer: {
-        backgroundColor: '#1C1C1E',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-        paddingHorizontal: 16,
-        paddingTop: 8,
     },
     modalContent: {
-        marginTop: 10,
+        backgroundColor: COLORS.background,
+        borderTopLeftRadius: RADIUS.lg,
+        borderTopRightRadius: RADIUS.lg,
+        maxHeight: '70%',
+        paddingBottom: 10,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: SPACING.md,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+    },
+    modalTitle: {
+        ...TYPOGRAPHY.h2,
+        color: COLORS.text,
+    },
+    modalCloseButton: {
+        padding: SPACING.sm,
     },
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 14,
+        color: COLORS.text,
         gap: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+        padding: SPACING.md,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
     },
     actionText: {
-        fontSize: 17,
-        color: '#FFF',
-        fontWeight: '400',
+        ...TYPOGRAPHY.body,
+        color: COLORS.text,
     },
     deleteText: {
         fontSize: 17,

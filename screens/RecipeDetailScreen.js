@@ -100,7 +100,6 @@ const RecipeDetailScreen = ({route, navigation}) => {
 
                 {/* Section des Catégories */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Catégories</Text>
                     <View style={styles.categoriesContainer}>
                         {recipe.category && recipe.category.length > 0 ? (
                             recipe.category.map((cat, index) => (

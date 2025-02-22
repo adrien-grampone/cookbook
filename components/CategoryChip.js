@@ -7,7 +7,7 @@ export const CategoryChip = ({ category, isSelected, onPress }) => (
         onPress={onPress}
         style={[
             styles.categoryChip,
-            isSelected && { backgroundColor: COLORS.accent }
+            isSelected && { backgroundColor: COLORS.primary }
         ]}
     >
         <Text style={[

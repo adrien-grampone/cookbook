@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: SPACING.lg,
         left: SPACING.lg,
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.accent,
         width: 56,
         height: 56,
         borderRadius: RADIUS.round,

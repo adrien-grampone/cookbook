@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StorageService } from '../utils/storage';
 import { ImageService } from '../utils/imageService';
 import { showMessage } from 'react-native-flash-message';
+import {ALERT_TYPE, Toast} from 'react-native-alert-notification';
+import { COLORS } from '../styles/theme';
 
 const RecipeContext = createContext();
 
@@ -61,7 +63,7 @@ export const RecipeProvider = ({ children }) => {
             const newRecipe = {
                 ...recipe,
                 id: new Date().toISOString(), // Generate a new unique ID
-                name: `${recipe.name} (Copy)`, // Optionally, append "Copy" to the name
+                name: `${recipe.name} (Copie)`, // Optionally, append "Copy" to the name
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
@@ -69,30 +71,24 @@ export const RecipeProvider = ({ children }) => {
             const success = await StorageService.saveRecipe(newRecipe);
             if (success) {
                 loadRecipes(); // Recharger toutes les recettes
-                showMessage({
-                    message: 'Recipe duplicated successfully!',
-                    type: 'success',
-                    icon: 'success',
-                    duration: 3000,
-                    style: { borderRadius: 10, margin: 10 },
+                Toast.show({
+                    type: ALERT_TYPE.SUCCESS,
+                    title: 'C\'est fait !',
+                    textBody: 'La recette a bien été dupliquée',
                 });
             } else {
-                showMessage({
-                    message: 'Failed to duplicate the recipe.',
-                    type: 'danger',
-                    icon: 'danger',
-                    duration: 3000,
-                    style: { borderRadius: 10, margin: 10 },
+                Toast.show({
+                    type: ALERT_TYPE.SUCCESS,
+                    title: 'Mince !',
+                    textBody: 'La recette n\'a pas pu être dupliquée',
                 });
             }
         } catch (error) {
             console.error('Error duplicating recipe:', error);
-            showMessage({
-                message: 'An error occurred while duplicating the recipe.',
-                type: 'danger',
-                icon: 'danger',
-                duration: 3000,
-                style: { borderRadius: 10, margin: 10 },
+            Toast.show({
+                type: ALERT_TYPE.SUCCESS,
+                title: 'Mince !',
+                textBody: 'La recette n\'a pas pu être dupliquée',
             });
         }
     };
@@ -156,7 +152,21 @@ export const RecipeProvider = ({ children }) => {
 
     const deleteRecipe = async (recipeId) => {
         try {
-            await StorageService.deleteRecipe(recipeId);
+            const success = await StorageService.deleteRecipe(recipeId);
+            if (success) {
+                loadRecipes(); // Recharger toutes les recettes
+                Toast.show({
+                    type: ALERT_TYPE.SUCCESS,
+                    title: 'C\'est fait !',
+                    textBody: 'La recette a bien été supprimée',
+                });
+            } else {
+                Toast.show({
+                    type: ALERT_TYPE.WARNING,
+                    title: 'Mince !',
+                    textBody: 'La recette n\'a pas pu être supprimée',
+                });
+            }
             await loadRecipes();
             setSelectedRecipe(null); // Réinitialiser la recette sélectionnée après la suppression
             return true;

@@ -25,6 +25,11 @@ export const COLORS = {
     gradients: {
         primary: ['#4A90E2', '#76B4FC'],  // Dégradé de bleu doux
         accent: ['#FF7A59', '#FF9A76'],  // Dégradé de corail chaud
+    },
+
+    notifications: {
+        borderRadius: 10,
+        margin: 10,
     }
 };
 
@@ -120,8 +125,6 @@ export const UNITS = [
     { id: 'cas', label: 'cuillères à soupe', icon: '🥄' },
     { id: 'cac', label: 'cuillères à café', icon: '☕' },
     { id: 'pincee', label: 'pincée(s)', icon: '🤏' },
-    { id: 'unite', label: 'unité(s)', icon: '🔢' },
-    { id: 'piece', label: 'pièce(s)', icon: '🧩' },
     { id: 'tranche', label: 'tranche(s)', icon: '🍞' },
     { id: 'tasse', label: 'tasse(s)', icon: '🍵' },
     { id: 'verre', label: 'verre(s)', icon: '🥤' },
