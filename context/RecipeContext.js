@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StorageService } from '../utils/storage';
 import { ImageService } from '../utils/imageService';
+import { showMessage } from 'react-native-flash-message';
 
 const RecipeContext = createContext();
 
@@ -51,6 +52,48 @@ export const RecipeProvider = ({ children }) => {
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la recette', error);
             return false;
+        }
+    };
+
+
+    const handleDuplicateRecipe = async (recipe) => {
+        try {
+            const newRecipe = {
+                ...recipe,
+                id: new Date().toISOString(), // Generate a new unique ID
+                name: `${recipe.name} (Copy)`, // Optionally, append "Copy" to the name
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const success = await StorageService.saveRecipe(newRecipe);
+            if (success) {
+                loadRecipes(); // Recharger toutes les recettes
+                showMessage({
+                    message: 'Recipe duplicated successfully!',
+                    type: 'success',
+                    icon: 'success',
+                    duration: 3000,
+                    style: { borderRadius: 10, margin: 10 },
+                });
+            } else {
+                showMessage({
+                    message: 'Failed to duplicate the recipe.',
+                    type: 'danger',
+                    icon: 'danger',
+                    duration: 3000,
+                    style: { borderRadius: 10, margin: 10 },
+                });
+            }
+        } catch (error) {
+            console.error('Error duplicating recipe:', error);
+            showMessage({
+                message: 'An error occurred while duplicating the recipe.',
+                type: 'danger',
+                icon: 'danger',
+                duration: 3000,
+                style: { borderRadius: 10, margin: 10 },
+            });
         }
     };
 
@@ -154,6 +197,7 @@ export const RecipeProvider = ({ children }) => {
                 handleSaveRecipe,
                 selectedRecipe,
                 setSelectedRecipe,
+                handleDuplicateRecipe,
                 refreshRecipes: loadRecipes,
             }}
         >

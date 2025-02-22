@@ -7,6 +7,7 @@ import RecipeDetailScreen from './screens/RecipeDetailScreen';
 import {RecipeProvider} from "./context/RecipeContext";
 import {COLORS} from "./styles/theme";
 import { PaperProvider } from 'react-native-paper';
+import FlashMessage from 'react-native-flash-message';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ const App = () => {
         <PaperProvider>
             <RecipeProvider>
                 <NavigationContainer>
+                    <FlashMessage position="bottom" />
                     <Stack.Navigator
                         screenOptions={{
                             headerStyle: {

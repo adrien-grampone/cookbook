@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 10,
         top: 10,
+        paddingRight:40,
     },
     categoryChip: {
         backgroundColor: COLORS.surface,
