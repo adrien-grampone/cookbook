@@ -77,6 +77,6 @@ export const generateRecipe = async (description) => {
 
         return recipeObject;  // Convertir la réponse en objet JSON si ChatGPT fournit un format valide
     } catch (error) {
-        console.error("Erreur lors de la génération de la recette :", error);
+        Alert.alert('Erreur', 'Une erreur est survenue lors de la génération de la recette.');
     }
 };

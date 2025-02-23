@@ -183,17 +183,6 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
                             <CategoryDisplay recipe={recipe}/>
                         )}
 
-                        {(recipe.prepTime || recipe.servings) && (
-                            <View style={styles.metadata}>
-                                {recipe.prepTime && recipe.prepTime > 0 && (
-                                    <Text style={styles.metadataText}>🕒 {recipe.prepTime} min</Text>
-                                )}
-                                {recipe.servings && recipe.servings > 0 && (
-                                    <Text style={styles.metadataText}>👥 {recipe.servings} pers.</Text>
-                                )}
-                            </View>
-                        )}
-
                         <TouchableOpacity
                             activeOpacity={1}
                             style={styles.actionIcon}
@@ -204,6 +193,12 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
                     </ImageBackground>
 
                     <View style={styles.content}>
+
+                        {recipe.prepTime && recipe.prepTime > 0 && (
+                            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                                <Text style={styles.macroBadge}>🕒 {recipe.prepTime} min</Text>
+                            </View>
+                        )}
                         <Text style={styles.title}>{recipe.name}</Text>
                         {recipe.macros && (recipe.macros.calories || recipe.macros.protein || recipe.macros.fat || recipe.macros.carbs) && (
                             <View style={styles.macros}>
@@ -280,6 +275,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: COLORS.text,
         textAlign: 'center',
+        marginTop: 10,
     },
     macros: {
         flexDirection: 'row',

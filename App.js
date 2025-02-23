@@ -5,10 +5,11 @@ import HomeScreen from './screens/HomeScreen';
 import AddOrEditRecipeScreen from './screens/AddOrEditRecipeScreen';
 import RecipeDetailScreen from './screens/RecipeDetailScreen';
 import {RecipeProvider} from "./context/RecipeContext";
-import {COLORS} from "./styles/theme";
+import {COLORS, RADIUS, SHADOWS, SPACING, TYPOGRAPHY} from "./styles/theme";
 import {PaperProvider} from 'react-native-paper';
 import SplashScreen from './screens/SplashScreen';
 import {AlertNotificationRoot} from 'react-native-alert-notification';
+import {ActivityIndicator, StyleSheet, View} from "react-native";
 
 const Stack = createStackNavigator();
 

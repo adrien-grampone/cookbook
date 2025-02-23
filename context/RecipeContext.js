@@ -44,7 +44,6 @@ export const RecipeProvider = ({ children }) => {
 
             if (success) {
                 await loadRecipes(); // Recharger toutes les recettes
-                setSelectedRecipe(recipeData);
                 if (navigation) {
                     navigation.goBack();
                     Toast.show({
@@ -143,6 +142,7 @@ export const RecipeProvider = ({ children }) => {
 
     const deleteRecipe = async (recipeId) => {
         try {
+            setLoading(true);
             const success = await StorageService.deleteRecipe(recipeId);
             if (success) {
                 loadRecipes(); // Recharger toutes les recettes
@@ -165,6 +165,8 @@ export const RecipeProvider = ({ children }) => {
             setError('Erreur lors de la suppression de la recette');
             console.error(err);
             return false;
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -184,6 +186,7 @@ export const RecipeProvider = ({ children }) => {
             value={{
                 recipes,
                 loading,
+                setLoading,
                 error,
                 updateRecipe,
                 deleteRecipe,
@@ -193,6 +196,7 @@ export const RecipeProvider = ({ children }) => {
                 setSelectedRecipe,
                 handleDuplicateRecipe,
                 refreshRecipes: loadRecipes,
+
             }}
         >
             {children}

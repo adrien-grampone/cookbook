@@ -7,7 +7,7 @@ import {
     Animated,
     TouchableOpacity,
     FlatList,
-    Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Text
+    Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Text, ActivityIndicator
 } from 'react-native';
 import {COLORS, CATEGORIES} from '../styles/theme';
 import RecipeCard from '../components/RecipeCard';
@@ -24,21 +24,10 @@ import {ALERT_TYPE, Dialog, AlertNotificationRoot, Toast} from 'react-native-ale
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const {recipes, refreshRecipes, deleteRecipe, loading, setSelectedRecipe, handleSaveRecipe} = useRecipes();
+    const {recipes, refreshRecipes, deleteRecipe, loading, setSelectedRecipe, handleSaveRecipe, setLoading} = useRecipes();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [scrollY] = useState(new Animated.Value(0));
-
-    useEffect(() => {
-        /*Dialog.show({
-            type: ALERT_TYPE.SUCCESS,
-            title: 'Supprimer la recette',
-            textBody: 'Êtes-vous sûr de vouloir supprimer cette recette ?',
-            button: 'Annuler',
-            onPressButton: () => Dialog.hide(),
-            onPressConfirm: () => onDelete(recipe.id),
-        });*/
-    }, []);
 
     const handleClearAllRecipes = async () => {
         await StorageService.clearAllRecipes();
@@ -196,6 +185,11 @@ const HomeScreen = () => {
                     </SafeAreaView>
                 </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
+            {loading && (
+                <View style={styles.loaderContainer}>
+                    <ActivityIndicator size="large" color={COLORS.accent} />
+                </View>
+            )}
         </AlertNotificationRoot>
     );
 };
@@ -254,6 +248,19 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+    },
+    loaderContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Semi-transparent background
+        zIndex: 1,  // Ensure the loader is on top,
+        width: '100%',
+        height: '100%',
     },
 });
 

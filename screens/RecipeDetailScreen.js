@@ -13,10 +13,11 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, CATEGORIES} from '../styles/theme';
 import {useRecipes} from "../context/RecipeContext";
+import { useFocusEffect } from '@react-navigation/native'; // Importer useFocusEffect
 
 const RecipeDetailScreen = ({route, navigation}) => {
     //const {recipe} = route.params;
-    const {selectedRecipe} = useRecipes(); // Utiliser le contexte pour récupérer la recette actuelle
+    const {selectedRecipe, setSelectedRecipe} = useRecipes(); // Utiliser le contexte pour récupérer la recette actuelle
     const [recipe, setRecipe] = React.useState();
     const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -25,6 +26,14 @@ const RecipeDetailScreen = ({route, navigation}) => {
             setRecipe(selectedRecipe);
         }
     }, [selectedRecipe]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            return () => {
+                setSelectedRecipe(null);
+            };
+        }, [])
+    );
 
     if (!recipe) {
         return (
@@ -82,7 +91,7 @@ const RecipeDetailScreen = ({route, navigation}) => {
                 <Animated.View style={[styles.titleContainer]}>
                     <Text style={styles.title}>{recipe.name}</Text>
                     <View style={styles.metadata}>
-                        <Text style={styles.metadataText}>🕒 {recipe.totalTime} min</Text>
+                        <Text style={styles.metadataText}>🕒 {recipe.prepTime} min</Text>
                         <Text style={styles.metadataText}>👥 {recipe.servings} pers.</Text>
                     </View>
                 </Animated.View>
@@ -100,6 +109,7 @@ const RecipeDetailScreen = ({route, navigation}) => {
 
                 {/* Section des Catégories */}
                 <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Catégories</Text>
                     <View style={styles.categoriesContainer}>
                         {recipe.category && recipe.category.length > 0 ? (
                             recipe.category.map((cat, index) => (
