@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
@@ -7,20 +7,17 @@ import RecipeDetailScreen from './screens/RecipeDetailScreen';
 import {RecipeProvider} from "./context/RecipeContext";
 import {COLORS} from "./styles/theme";
 import {PaperProvider} from 'react-native-paper';
-import FlashMessage from 'react-native-flash-message';
 import SplashScreen from './screens/SplashScreen';
-import {ALERT_TYPE, Dialog, AlertNotificationRoot, Toast} from 'react-native-alert-notification';
+import {AlertNotificationRoot} from 'react-native-alert-notification';
 
 const Stack = createStackNavigator();
 
 const App = () => {
-
     return (
         <AlertNotificationRoot>
             <PaperProvider>
                 <RecipeProvider>
                     <NavigationContainer>
-                        <FlashMessage position="top"/>
                         <Stack.Navigator
                             screenOptions={{
                                 headerStyle: {

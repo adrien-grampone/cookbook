@@ -76,7 +76,7 @@ const RecipeDetailScreen = ({route, navigation}) => {
         <View style={styles.container}>
             <Animated.View style={[styles.header, {height: headerHeight}]}>
                 <Animated.Image
-                    source={{uri: recipe.image}}
+                    source={recipe.image ? {uri: recipe.image} : require('../assets/recipe-default.jpg')}
                     style={[styles.headerImage, {opacity: imageOpacity}]}
                 />
                 <Animated.View style={[styles.titleContainer]}>
@@ -162,7 +162,7 @@ const RecipeDetailScreen = ({route, navigation}) => {
             <View style={styles.actionButtons}>
                 <TouchableOpacity
                     style={[styles.actionButton, {backgroundColor: COLORS.primary}]}
-                    onPress={() => navigation.navigate('AddOrEditRecipe', {recipe})}
+                    onPress={() => navigation.navigate('AddOrEditRecipe')}
                 >
                     <Icon name="edit" size={24} color={COLORS.card}/>
                 </TouchableOpacity>

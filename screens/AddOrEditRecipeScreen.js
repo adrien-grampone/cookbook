@@ -1,5 +1,5 @@
 // screens/AddOrEditRecipeScreen.js
-import React, {useState, useLayoutEffect, useRef} from 'react';
+import React, {useState, useLayoutEffect, useRef, useEffect} from 'react';
 import {
     View,
     Text,
@@ -23,12 +23,12 @@ import {CategoryChip} from "../components/CategoryChip";
 import {useRecipes} from '../context/RecipeContext'; // Importer le contexte
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
+import {ALERT_TYPE, Toast} from "react-native-alert-notification";
 
 
 const AddOrEditRecipeScreen = ({navigation, route}) => {
-    const {handleSaveRecipe} = useRecipes(); // Utilisation du contexte pour ajouter une recette
+    const {handleSaveRecipe, selectedRecipe} = useRecipes(); // Utilisation du contexte pour ajouter une recette
     const scrollViewRef = useRef(null);
-    const {selectedRecipe} = useRecipes(); // Utiliser le contexte pour récupérer la recette actuelle
     const [editingRecipe] = React.useState(selectedRecipe);
     const [formData, setFormData] = useState({
         name: editingRecipe?.name || '',
@@ -192,8 +192,9 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
     const onSubmit = async () => {
         const success = await handleSaveRecipe(formData, navigation);
         if (success) {
-            // La navigation est maintenant gérée dans handleSaveRecipe
-            console.log('Recette sauvegardée avec succès');
+            if(selectedRecipe){
+                navigation.goBack();
+            }
         } else {
             console.error('Erreur lors de la sauvegarde de la recette');
         }

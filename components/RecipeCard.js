@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {COLORS, TYPOGRAPHY, SPACING, RADIUS} from "../styles/theme";
 import {useRecipes} from "../context/RecipeContext";
 import CategoryDisplay from "./CategoryDisplay";
+import ActionModal from "./ActionModal";
 
 const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
     const {handleDuplicateRecipe} = useRecipes();
@@ -97,65 +98,66 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
         }
     };
 
-    const ActionModal = () => (
-        <Modal
-            animationType="none"
-            transparent={true}
-            visible={showActionModal}
-            onRequestClose={() => {
-                setShowActionModal(false);
-                endLongPressAnimation();
-            }}
-        >
-            <TouchableWithoutFeedback onPress={() => setShowActionModal(false)}>
-                <Animated.View style={[styles.modalOverlay, {opacity: backgroundAnim}]}>
-                    <Animated.View style={[styles.modalContent, {transform: [{translateY: modalAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [300, 0]
-                            })}]}]}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{recipe.name.split(' ').slice(0, 4).join(' ')}</Text>
-                            <TouchableOpacity
-                                style={styles.modalCloseButton}
-                                onPress={() => setShowActionModal(false)}
-                            >
-                                <Icon name="close" size={24} color={COLORS.text}/>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.modalContent}>
-                            <TouchableOpacity
-                                style={styles.actionButton}
-                                onPress={() => {
-                                    handleDuplicateRecipe(recipe);
-                                    setShowActionModal(false);
-                                }}
-                            >
-                                <Icon name="content-copy" size={22} color="#000"/>
-                                <Text style={styles.actionText}>Dupliquer</Text>
-                            </TouchableOpacity>
+    /* const ActionModal = () => (
+         <Modal
+             animationType="none"
+             transparent={true}
+             visible={showActionModal}
+             onRequestClose={() => {
+                 setShowActionModal(false);
+                 endLongPressAnimation();
+             }}
+         >
+             <TouchableWithoutFeedback onPress={() => setShowActionModal(false)}>
+                 <Animated.View style={[styles.modalOverlay, {opacity: backgroundAnim}]}>
+                     <Animated.View style={[styles.modalContent, {transform: [{translateY: modalAnim.interpolate({
+                                 inputRange: [0, 1],
+                                 outputRange: [300, 0]
+                             })}]}]}>
+                         <View style={styles.modalHeader}>
+                             <Text style={styles.modalTitle}>{recipe.name.split(' ').slice(0, 4).join(' ')}</Text>
+                             <TouchableOpacity
+                                 style={styles.modalCloseButton}
+                                 onPress={() => setShowActionModal(false)}
+                             >
+                                 <Icon name="close" size={24} color={COLORS.text}/>
+                             </TouchableOpacity>
+                         </View>
+                         <View style={styles.modalContent}>
+                             <TouchableOpacity
+                                 style={styles.actionButton}
+                                 onPress={() => {
+                                     handleDuplicateRecipe(recipe);
+                                     setShowActionModal(false);
+                                 }}
+                             >
+                                 <Icon name="content-copy" size={22} color="#000"/>
+                                 <Text style={styles.actionText}>Dupliquer</Text>
+                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.actionButton}
-                                onPress={handleShare}
-                            >
-                                <Icon name="share" size={22} color="#000"/>
-                                <Text style={styles.actionText}>Partager</Text>
-                            </TouchableOpacity>
+                             <TouchableOpacity
+                                 style={styles.actionButton}
+                                 onPress={handleShare}
+                             >
+                                 <Icon name="share" size={22} color="#000"/>
+                                 <Text style={styles.actionText}>Partager</Text>
+                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={{...styles.actionButton, borderBottomWidth: 0}}
-                                onPress={confirmDelete}
-                            >
-                                <Icon name="delete" size={22} color="#FF453A"/>
-                                <Text style={styles.deleteText}>Supprimer</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Animated.View>
-                </Animated.View>
-            </TouchableWithoutFeedback>
-        </Modal>
-    );
+                             <TouchableOpacity
+                                 style={{...styles.actionButton, borderBottomWidth: 0}}
+                                 onPress={confirmDelete}
+                             >
+                                 <Icon name="delete" size={22} color="#FF453A"/>
+                                 <Text style={styles.deleteText}>Supprimer</Text>
+                             </TouchableOpacity>
+                         </View>
+                     </Animated.View>
+                 </Animated.View>
+             </TouchableWithoutFeedback>
+         </Modal>
+     );*/
 
+    console.log(recipe);
     return (
         <>
             <Animated.View style={{transform: [{scale: scaleAnim}]}}>
@@ -179,6 +181,17 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
                     >
                         {recipe.category?.length > 0 && (
                             <CategoryDisplay recipe={recipe}/>
+                        )}
+
+                        {(recipe.prepTime || recipe.servings) && (
+                            <View style={styles.metadata}>
+                                {recipe.prepTime && recipe.prepTime > 0 && (
+                                    <Text style={styles.metadataText}>🕒 {recipe.prepTime} min</Text>
+                                )}
+                                {recipe.servings && recipe.servings > 0 && (
+                                    <Text style={styles.metadataText}>👥 {recipe.servings} pers.</Text>
+                                )}
+                            </View>
                         )}
 
                         <TouchableOpacity
@@ -206,7 +219,21 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
                 </TouchableOpacity>
             </Animated.View>
 
-            <ActionModal/>
+            <ActionModal
+                visible={showActionModal}
+                onClose={() => setShowActionModal(false)}
+                title={recipe.name.split(' ').slice(0, 4).join(' ')}
+                actions={[
+                    {
+                        label: 'Dupliquer', icon: 'content-copy', onPress: () => {
+                            setShowActionModal(false);
+                            handleDuplicateRecipe(recipe);
+                        }
+                    },
+                    {label: 'Partager', icon: 'share', onPress: handleShare},
+                    {label: 'Supprimer', icon: 'delete', color: '#FF453A', onPress: confirmDelete},
+                ]}
+            />
         </>
     );
 };
@@ -314,6 +341,28 @@ const styles = StyleSheet.create({
         fontSize: 17,
         color: '#FF453A',
         fontWeight: '500',
+    },
+    metadata: {
+        position: 'absolute',
+        bottom: 10,
+        left: 10,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: 8,
+        justifyContent: 'center',
+    },
+    metadataText: {
+        backgroundColor: COLORS.surface,
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+        width: 'auto',
     },
 });
 

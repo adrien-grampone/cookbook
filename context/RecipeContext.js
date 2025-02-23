@@ -47,8 +47,32 @@ export const RecipeProvider = ({ children }) => {
                 setSelectedRecipe(recipeData);
                 if (navigation) {
                     navigation.goBack();
+                    Toast.show({
+                        type: ALERT_TYPE.SUCCESS,
+                        title: 'C\'est fait !',
+                        textBody: 'La recette a bien été modifié',
+                    });
+                } else{
+                    Toast.show({
+                        type: ALERT_TYPE.SUCCESS,
+                        title: 'Super !',
+                        textBody: 'La recette a bien été ajoutée',
+                    });
                 }
                 return true;
+            }
+            if(navigation) {
+                Toast.show({
+                    type: ALERT_TYPE.SUCCESS,
+                    title: 'Mince !',
+                    textBody: 'La recette n\'a pas pu être modifié',
+                });
+            } else{
+                Toast.show({
+                    type: ALERT_TYPE.SUCCESS,
+                    title: 'Mince !',
+                    textBody: 'La recette n\'a pas pu être sauvegardée',
+                });
             }
             return false;
         } catch (error) {
@@ -92,39 +116,6 @@ export const RecipeProvider = ({ children }) => {
             });
         }
     };
-
-    const addRecipe = async (recipeData) => {
-        try {
-            if (recipeData.image) {
-                const imageUri = await ImageService.pickImage();
-                if (imageUri) {
-                    recipeData.image = imageUri;
-                }
-            }
-
-            await StorageService.saveRecipe(recipeData);
-            await loadRecipes();
-            return true;
-        } catch (err) {
-            setError('Erreur lors de l\'ajout de la recette');
-            console.error(err);
-            return false;
-        }
-    };
-
-    /*const updateRecipe = async (recipeId, recipeData) => {
-        try {
-            const updatedRecipe = { ...recipeData, id: recipeId };
-            await StorageService.saveRecipe(updatedRecipe);
-            await loadRecipes();
-            setSelectedRecipe(updatedRecipe); // Mettre à jour la recette sélectionnée après la modification
-            return true;
-        } catch (err) {
-            setError('Erreur lors de la mise à jour de la recette');
-            console.error(err);
-            return false;
-        }
-    };*/
 
     const updateRecipe = async () => {
         try {
@@ -188,22 +179,15 @@ export const RecipeProvider = ({ children }) => {
         }
     };
 
-    const selectRecipe = (recipe) => {
-        //const recipe = recipes.find((rec) => rec.id === recipeId);
-        setSelectedRecipe(recipe);
-    };
-
     return (
         <RecipeContext.Provider
             value={{
                 recipes,
                 loading,
                 error,
-                addRecipe,
                 updateRecipe,
                 deleteRecipe,
                 searchRecipes,
-                selectRecipe,
                 handleSaveRecipe,
                 selectedRecipe,
                 setSelectedRecipe,

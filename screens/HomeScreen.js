@@ -24,7 +24,7 @@ import {ALERT_TYPE, Dialog, AlertNotificationRoot, Toast} from 'react-native-ale
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const {recipes, refreshRecipes, deleteRecipe, loading, selectRecipe, handleSaveRecipe} = useRecipes();
+    const {recipes, refreshRecipes, deleteRecipe, loading, setSelectedRecipe, handleSaveRecipe} = useRecipes();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [scrollY] = useState(new Animated.Value(0));
@@ -67,7 +67,7 @@ const HomeScreen = () => {
     };
 
     const handleRecipePress = (recipe) => {
-        selectRecipe(recipe);
+        setSelectedRecipe(recipe);
         navigation.navigate('RecipeDetail');
     };
 
@@ -185,7 +185,7 @@ const HomeScreen = () => {
                         <TouchableOpacity
                             style={styles.fab}
                             onPress={() => {
-                                selectRecipe();
+                                setSelectedRecipe(null);
                                 navigation.navigate('AddOrEditRecipe');
                             }}
                         >
