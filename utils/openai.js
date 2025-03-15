@@ -73,7 +73,7 @@ export const generateRecipe = async (description) => {
             macros: {calories: 250, protein: 7, carbs: 42, fat: 9}
         };*/
 
-        console.log(recipeObject);
+        //console.log(recipeObject);
 
         return recipeObject;  // Convertir la réponse en objet JSON si ChatGPT fournit un format valide
     } catch (error) {

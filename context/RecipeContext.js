@@ -14,9 +14,11 @@ export const RecipeProvider = ({ children }) => {
     const [selectedRecipe, setSelectedRecipe] = useState(null); // Ajouter un état pour la recette sélectionnée
     const [error, setError] = useState(null);
 
-    const loadRecipes = async () => {
+    const loadRecipes = async (displayLoading = true) => {
         try {
-            setLoading(true);
+            if(displayLoading){
+                setLoading(true);
+            }
             const savedRecipes = await StorageService.getAllRecipes();
             setRecipes(savedRecipes);
         } catch (err) {
@@ -195,8 +197,7 @@ export const RecipeProvider = ({ children }) => {
                 selectedRecipe,
                 setSelectedRecipe,
                 handleDuplicateRecipe,
-                refreshRecipes: loadRecipes,
-
+                loadRecipes
             }}
         >
             {children}

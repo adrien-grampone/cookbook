@@ -157,7 +157,6 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
          </Modal>
      );*/
 
-    console.log(recipe);
     return (
         <>
             <Animated.View style={{transform: [{scale: scaleAnim}]}}>

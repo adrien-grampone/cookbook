@@ -14,7 +14,8 @@ import {
     Keyboard,
     Platform,
     Modal,
-    FlatList
+    Alert,
+    FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {COLORS, CATEGORIES, SPACING, RADIUS, TYPOGRAPHY, SHADOWS, UNITS} from '../styles/theme';
@@ -37,8 +38,8 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
         prepTime: editingRecipe?.prepTime?.toString() || '',
         cookTime: editingRecipe?.cookTime?.toString() || '',
         servings: editingRecipe?.servings?.toString() || '',
-        ingredients: editingRecipe?.ingredients || [{name: '', amount: '', unit: ''}],
-        steps: editingRecipe?.steps || [{description: ''}],
+        ingredients: editingRecipe?.ingredients || [],
+        steps: editingRecipe?.steps || [],
         image: editingRecipe?.image || null,
         macros: editingRecipe?.macros || {
             calories: '',
@@ -74,6 +75,14 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
         }
     };
 
+    const isFormDataEmpty = () => {
+        const {name, description, category, prepTime, cookTime, servings, ingredients, steps, image, macros} = formData;
+        return !name && !description && !category && !prepTime && !cookTime && !servings &&
+            ingredients.every(ingredient => !ingredient.name && !ingredient.amount && !ingredient.unit) &&
+            steps.every(step => !step.description) && !image &&
+            !macros.calories && !macros.protein && !macros.carbs && !macros.fat;
+    };
+
     const selectImage = async () => {
         const permissionGranted = await requestMediaLibraryPermission();
 
@@ -99,6 +108,39 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
             }
         } else {
         }
+    };
+
+    const renderStepInput = (step, index) => (
+        <View key={index} style={styles.stepContainer}>
+            <TextInput
+                style={[styles.input, styles.multiline]}
+                placeholder={`Étape ${index + 1}`}
+                multiline
+                value={step.description}
+                onChangeText={(value) => updateStep(index, value)}
+                blurOnSubmit={false}
+                returnKeyType="next"
+                onFocus={() => {
+                    // Petit délai pour laisser le temps au clavier de s'afficher
+                    setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({animated: true});
+                    }, 100);
+                }}
+            />
+            <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteStep(index)}
+            >
+                <Icon name="delete" size={24} color={COLORS.error} />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const deleteStep = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            steps: prev.steps.filter((_, i) => i !== index),
+        }));
     };
 
     const [imageAnimation] = useState(new Animated.Value(0));
@@ -132,35 +174,52 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
     };
 
     const renderIngredientInput = (ingredient, index) => (
-        <Animated.View
-            key={index}
-            style={[styles.ingredientContainer, {
-                opacity: 1,
-            }]}
-        >
-            <TextInput
-                style={styles.ingredientName}
-                placeholder="Ingrédient"
-                value={ingredient.name}
-                onChangeText={(value) => updateIngredient(index, 'name', value)}
-            />
-            <TextInput
-                style={styles.ingredientAmount}
-                placeholder="Quantité"
-                keyboardType="numeric"
-                value={ingredient.amount}
-                onChangeText={(value) => updateIngredient(index, 'amount', value)}
-            />
-            <TouchableOpacity
-                style={styles.unitPicker}
-                onPress={() => openUnitPicker(index)}
+            <Animated.View
+                key={index}
+                style={[styles.ingredientContainer, {
+                    opacity: 1,
+                }]}
             >
-                <Text style={styles.unitPickerText}>
-                    {ingredient.unit || 'Unité'}
-                </Text>
-            </TouchableOpacity>
-        </Animated.View>
-    );
+                <TextInput
+                    style={styles.ingredientName}
+                    placeholder="Ingrédient"
+                    value={ingredient.name}
+                    onChangeText={(value) => updateIngredient(index, 'name', value)}
+                />
+                <TextInput
+                    style={styles.ingredientAmount}
+                    placeholder="Quantité"
+                    keyboardType="numeric"
+                    value={ingredient.amount}
+                    onChangeText={(value) => updateIngredient(index, 'amount', value)}
+                />
+                <TouchableOpacity
+                    style={styles.unitPicker}
+                    onPress={() => openUnitPicker(index)}
+                >
+                    <Text style={styles.unitPickerText}>
+                        {ingredient.unit || 'Unité'}
+                    </Text>
+                </TouchableOpacity>
+                {
+                    ingredient.name &&
+                    <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => deleteIngredient(index)}
+                    >
+                        <Icon name="delete" size={24} color={COLORS.error}/>
+                    </TouchableOpacity>
+                }
+            </Animated.View>
+        )
+    ;
+
+    const deleteIngredient = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            ingredients: prev.ingredients.filter((_, i) => i !== index),
+        }));
+    };
 
     const addIngredient = () => {
         setFormData(prev => ({
@@ -190,13 +249,22 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
 
     // Dans le même composant, modifiez la fonction onPress du bouton de soumission :
     const onSubmit = async () => {
+        if (isFormDataEmpty()) {
+            Alert.alert(
+                'Erreur',
+                'Merci de remplir au moins le nom de la recette.',
+                [{text: 'OK'}]
+            );
+            return;
+        }
+
         const success = await handleSaveRecipe(formData, navigation);
         if (success) {
-            if(selectedRecipe){
+            if (selectedRecipe) {
                 navigation.goBack();
             }
         } else {
-            console.error('Erreur lors de la sauvegarde de la recette');
+            console.error('Error saving the recipe');
         }
     };
 
@@ -297,25 +365,9 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
                         </View>
 
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Étapes</Text>
+                            <Text style={styles.sectionTitle}>Préparation</Text>
                             {formData.steps.map((step, index) => (
-                                <View key={index} style={styles.stepContainer}>
-                                    <TextInput
-                                        style={[styles.input, styles.multiline]}
-                                        placeholder={`Étape ${index + 1}`}
-                                        multiline
-                                        value={step.description}
-                                        onChangeText={(value) => updateStep(index, value)}
-                                        blurOnSubmit={false}
-                                        returnKeyType="next"
-                                        onFocus={() => {
-                                            // Petit délai pour laisser le temps au clavier de s'afficher
-                                            setTimeout(() => {
-                                                scrollViewRef.current?.scrollToEnd({animated: true});
-                                            }, 100);
-                                        }}
-                                    />
-                                </View>
+                                renderStepInput(step, index)
                             ))}
                             <TouchableOpacity style={styles.addButton} onPress={addStep}>
                                 <Icon name="add" size={24} color={COLORS.primary}/>
@@ -462,6 +514,8 @@ const styles = StyleSheet.create({
     },
     stepContainer: {
         marginBottom: SPACING.md,
+        display: "flex",
+        flexDirection: "row",
     },
     input: {
         backgroundColor: COLORS.surface,
@@ -474,6 +528,7 @@ const styles = StyleSheet.create({
     multiline: {
         minHeight: 100,
         textAlignVertical: 'top',
+        flex: 1,
     },
     section: {
         marginBottom: SPACING.lg,
@@ -524,6 +579,11 @@ const styles = StyleSheet.create({
     unitPickerText: {
         ...TYPOGRAPHY.body,
         color: COLORS.text,
+    },
+    deleteButton: {
+        marginLeft: SPACING.sm,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalOverlay: {
         flex: 1,
@@ -612,7 +672,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 10,
         top: '50%',
-        transform: [{ translateY: '-50%' }],
+        transform: [{translateY: '-50%'}],
         fontSize: 16,
         color: '#555',
     },

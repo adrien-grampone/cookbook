@@ -48,13 +48,19 @@ const ImportButton = () => {
                             try {
                                 setLoading(true);  // Start loading
                                 const videoId = tiktokUrl.split('/').filter(Boolean).pop();
+                                console.log('videoId');
+                                console.log(videoId);
+
                                 const response = await axios.get('https://tiktok-api23.p.rapidapi.com/api/post/detail', {
-                                    params: { videoId },
+                                    params:{
+                                        videoId: videoId
+                                    },
                                     headers: {
-                                        'x-rapidapi-key': '888b40bdafmsh5edb1371b01fc2dp17158djsn11b523888675',
+                                        'x-rapidapi-key': process.env.EXPO_PUBLIC_API_OPENAI_KEY,
                                         'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com'
                                     }
                                 });
+
 
                                 const description = response.data.itemInfo.itemStruct.desc;
                                 const recipe = await generateRecipe(description);
@@ -73,7 +79,7 @@ const ImportButton = () => {
     };
 
     return (
-        <View>
+        <>
             <TouchableOpacity style={styles.importButton} onPress={showModal}>
                 <Icon name="compare-arrows" size={28} color="#fff" />
             </TouchableOpacity>
@@ -111,15 +117,15 @@ const ImportButton = () => {
                 </View>
             )}
 
-        </View>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     importButton: {
         position: 'absolute',
-        bottom: SPACING.lg,
-        left: SPACING.lg,
+        bottom: 24,
+        left: 24,
         backgroundColor: COLORS.accent,
         width: 56,
         height: 56,
@@ -127,6 +133,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         ...SHADOWS.medium,
+        elevation: 5,
     },
     modalOverlay: {
         position: 'absolute',

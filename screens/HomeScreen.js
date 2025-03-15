@@ -1,4 +1,3 @@
-// screens/HomeScreen.js
 import React, {useState, useEffect} from 'react';
 import {
     View,
@@ -24,10 +23,11 @@ import {ALERT_TYPE, Dialog, AlertNotificationRoot, Toast} from 'react-native-ale
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const {recipes, refreshRecipes, deleteRecipe, loading, setSelectedRecipe, handleSaveRecipe, setLoading} = useRecipes();
+    const {recipes, loadRecipes, deleteRecipe, loading, setSelectedRecipe, handleSaveRecipe, setLoading} = useRecipes();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [scrollY] = useState(new Animated.Value(0));
+    const [isSearching, setIsSearching] = useState(false);
 
     const handleClearAllRecipes = async () => {
         await StorageService.clearAllRecipes();
@@ -54,6 +54,18 @@ const HomeScreen = () => {
             return matchesSearch && matchesCategory;
         });
     };
+
+    useEffect(() => {
+        if (searchQuery) {
+            setIsSearching(true);
+            const timeoutId = setTimeout(() => {
+                setIsSearching(false);
+            }, 100); // Simulate a delay for searching
+            return () => clearTimeout(timeoutId);
+        } else{
+            setIsSearching(false);
+        }
+    }, [searchQuery]);
 
     const handleRecipePress = (recipe) => {
         setSelectedRecipe(recipe);
@@ -124,7 +136,10 @@ const HomeScreen = () => {
                                     style={styles.searchInput}
                                     placeholder="Rechercher une recette"
                                     value={searchQuery}
-                                    onChangeText={setSearchQuery}
+                                    onChangeText={text => {
+                                        setSearchQuery(text);
+                                        setIsSearching(true);
+                                    }}
                                 />
                             </Animated.View>
 
@@ -150,34 +165,39 @@ const HomeScreen = () => {
                             />
                         </Animated.View>
 
-                        <FlatList
-                            data={filterRecipes()}
-                            renderItem={({item}) => (
-                                <RecipeCard
-                                    recipe={item}
-                                    onPress={() => handleRecipePress(item)}
-                                    onEdit={() => navigation.navigate('AddOrEditRecipe', {recipe: item})}
-                                    onDelete={() => deleteRecipe(item.id)}
-                                />
-                            )}
-                            keyExtractor={item => item.id}
-                            keyboardShouldPersistTaps="handled"
-                            contentContainerStyle={[styles.recipesList, {paddingBottom: 80}]} // Ajout du padding
-                            onScroll={Animated.event(
-                                [{nativeEvent: {contentOffset: {y: scrollY}}}],
-                                {useNativeDriver: false}
-                            )}
-                            refreshing={loading}
-                            onRefresh={refreshRecipes}
-                        />
+                        {isSearching ? (
+                            <View style={styles.loaderContainerRecipe}>
+                                <ActivityIndicator size="large" color={COLORS.accent} />
+                            </View>
+                        ) : (
+                            <FlatList
+                                data={filterRecipes()}
+                                renderItem={({item}) => (
+                                    <RecipeCard
+                                        recipe={item}
+                                        onPress={() => handleRecipePress(item)}
+                                        onEdit={() => navigation.navigate('AddOrEditRecipe', {recipe: item})}
+                                        onDelete={() => deleteRecipe(item.id)}
+                                    />
+                                )}
+                                keyExtractor={item => item.id}
+                                keyboardShouldPersistTaps="handled"
+                                contentContainerStyle={[styles.recipesList, {paddingBottom: 80}]} // Ajout du padding
+                                onScroll={Animated.event(
+                                    [{nativeEvent: {contentOffset: {y: scrollY}}}],
+                                    {useNativeDriver: false}
+                                )}
+                                refreshing={loading}
+                                onRefresh={() => loadRecipes(false)} // Ensure this is a function
+                            />
+                        )}
 
                         <TouchableOpacity
                             style={styles.fab}
                             onPress={() => {
                                 setSelectedRecipe(null);
                                 navigation.navigate('AddOrEditRecipe');
-                            }}
-                        >
+                            }}>
                             <Icon name="add" size={30} color={COLORS.card}/>
                         </TouchableOpacity>
 
@@ -258,10 +278,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Semi-transparent background
-        zIndex: 1,  // Ensure the loader is on top,
+        zIndex: 1,  // Ensure the loader is on top
         width: '100%',
         height: '100%',
     },
+    loaderContainerRecipe: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,  // Ensure the loader is on top
+        width: '100%',
+        height: '100%',
+        paddingTop:80
+    },
+
 });
 
 export default HomeScreen;
