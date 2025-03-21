@@ -72,15 +72,6 @@ const HomeScreen = () => {
         navigation.navigate('RecipeDetail');
     };
 
-    const handleExport = async () => {
-        const success = await StorageService.exportRecipes();
-        if (success) {
-            alert('Exportation réussie !');
-        } else {
-            alert("Une erreur s'est produite.");
-        }
-    };
-
     const handleImport = async () => {
         const success = await StorageService.importRecipes();
         if (success) {

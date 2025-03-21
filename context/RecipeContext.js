@@ -42,6 +42,7 @@ export const RecipeProvider = ({ children }) => {
                 updatedAt: new Date(),
             };
 
+
             const success = await StorageService.saveRecipe(recipeData);
 
             if (success) {
@@ -51,9 +52,9 @@ export const RecipeProvider = ({ children }) => {
                     Toast.show({
                         type: ALERT_TYPE.SUCCESS,
                         title: 'C\'est fait !',
-                        textBody: 'La recette a bien été modifié',
+                        textBody: 'La recette a bien été modifiée',
                     });
-                } else{
+                } else {
                     Toast.show({
                         type: ALERT_TYPE.SUCCESS,
                         title: 'Super !',
@@ -62,15 +63,15 @@ export const RecipeProvider = ({ children }) => {
                 }
                 return true;
             }
-            if(navigation) {
+            if (navigation) {
                 Toast.show({
-                    type: ALERT_TYPE.SUCCESS,
+                    type: ALERT_TYPE.ERROR,
                     title: 'Mince !',
-                    textBody: 'La recette n\'a pas pu être modifié',
+                    textBody: 'La recette n\'a pas pu être modifiée',
                 });
-            } else{
+            } else {
                 Toast.show({
-                    type: ALERT_TYPE.SUCCESS,
+                    type: ALERT_TYPE.ERROR,
                     title: 'Mince !',
                     textBody: 'La recette n\'a pas pu être sauvegardée',
                 });
@@ -81,7 +82,6 @@ export const RecipeProvider = ({ children }) => {
             return false;
         }
     };
-
 
     const handleDuplicateRecipe = async (recipe) => {
         try {

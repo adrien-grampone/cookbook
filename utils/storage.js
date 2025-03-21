@@ -85,11 +85,39 @@ export const StorageService = {
         }
     },
 
+    async exportRecipe(recipeId) {
+        try {
+            const recipes = await this.getAllRecipes();
+            const recipe = recipes.find(r => r.id === recipeId);
+
+            if (!recipe) {
+                console.error('Recipe not found:', recipeId);
+                return false;
+            }
+
+            const json = JSON.stringify([recipe], null, 2);
+            const fileUri = `${FileSystem.documentDirectory}${recipe.name}.json`;
+
+            await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(fileUri);
+            } else {
+                console.log("Le partage n'est pas disponible sur cet appareil.");
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error exporting recipe:', error);
+            return false;
+        }
+    },
+
     async exportRecipes() {
         try {
             const recipes = await this.getAllRecipes();
             const json = JSON.stringify(recipes, null, 2);
-            const fileUri = `${FileSystem.documentDirectory}recipes.json`;
+            const fileUri = `${FileSystem.documentDirectory}Mon Cookbook.json`;
 
             await FileSystem.writeAsStringAsync(fileUri, json, { encoding: FileSystem.EncodingType.UTF8 });
 

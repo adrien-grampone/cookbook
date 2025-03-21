@@ -17,7 +17,7 @@ import { useFocusEffect } from '@react-navigation/native'; // Importer useFocusE
 
 const RecipeDetailScreen = ({route, navigation}) => {
     //const {recipe} = route.params;
-    const {selectedRecipe, setSelectedRecipe} = useRecipes(); // Utiliser le contexte pour récupérer la recette actuelle
+    const {selectedRecipe, setSelectedRecipe, loadRecipes} = useRecipes(); // Add loadRecipes to the context
     const [recipe, setRecipe] = React.useState();
     const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -27,13 +27,19 @@ const RecipeDetailScreen = ({route, navigation}) => {
         }
     }, [selectedRecipe]);
 
-    useFocusEffect(
+    /*useFocusEffect(
         React.useCallback(() => {
+            // Reload the selected recipe data when the screen gains focus
+            loadRecipes().then(() => {
+                if (selectedRecipe) {
+                    setRecipe(selectedRecipe);
+                }
+            });
             return () => {
                 setSelectedRecipe(null);
             };
-        }, [])
-    );
+        }, [selectedRecipe])
+    );*/
 
     if (!recipe) {
         return (
@@ -172,8 +178,10 @@ const RecipeDetailScreen = ({route, navigation}) => {
             <View style={styles.actionButtons}>
                 <TouchableOpacity
                     style={[styles.actionButton, {backgroundColor: COLORS.primary}]}
-                    onPress={() => navigation.navigate('AddOrEditRecipe')}
-                >
+                    onPress={() => {
+                        setSelectedRecipe(recipe); // Set the selected recipe
+                        navigation.navigate('AddOrEditRecipe');
+                    }}>
                     <Icon name="edit" size={24} color={COLORS.card}/>
                 </TouchableOpacity>
                 <TouchableOpacity

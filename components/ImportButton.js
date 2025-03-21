@@ -6,6 +6,7 @@ import { useRecipes } from '../context/RecipeContext';
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../styles/theme';
 import { generateRecipe } from "../utils/openai";
 import axios from "axios";
+import {StorageService} from "../utils/storage";
 
 const ImportButton = () => {
     const [visible, setVisible] = useState(false);
@@ -78,6 +79,15 @@ const ImportButton = () => {
         }
     };
 
+    const handleExport = async () => {
+        const success = await StorageService.exportRecipes();
+        if (success) {
+            alert('Exportation réussie !');
+        } else {
+            alert("Une erreur s'est produite.");
+        }
+    };
+
     return (
         <>
             <TouchableOpacity style={styles.importButton} onPress={showModal}>
@@ -93,6 +103,11 @@ const ImportButton = () => {
                                 <Icon name="close" size={24} color={COLORS.text} />
                             </TouchableOpacity>
                         </View>
+
+                        <TouchableOpacity style={styles.actionButton} onPress={handleExport}>
+                            <Icon name="file-download" size={24} color={COLORS.text} />
+                            <Text style={styles.actionText}>Exporter toutes les recettes</Text>
+                        </TouchableOpacity>
 
                         <TouchableOpacity style={styles.actionButton} onPress={handleImportFile}>
                             <Icon name="file-upload" size={24} color={COLORS.text} />

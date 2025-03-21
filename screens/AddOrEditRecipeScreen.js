@@ -28,7 +28,7 @@ import {ALERT_TYPE, Toast} from "react-native-alert-notification";
 
 
 const AddOrEditRecipeScreen = ({navigation, route}) => {
-    const {handleSaveRecipe, selectedRecipe} = useRecipes(); // Utilisation du contexte pour ajouter une recette
+    const {handleSaveRecipe, selectedRecipe, setSelectedRecipe} = useRecipes(); // Add setSelectedRecipe
     const scrollViewRef = useRef(null);
     const [editingRecipe] = React.useState(selectedRecipe);
     const [formData, setFormData] = useState({
@@ -83,6 +83,10 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
             !macros.calories && !macros.protein && !macros.carbs && !macros.fat;
     };
 
+    const isIngredientUnitMissing = () => {
+        return formData.ingredients.some(ingredient => ingredient.name && !ingredient.unit);
+    };
+
     const selectImage = async () => {
         const permissionGranted = await requestMediaLibraryPermission();
 
@@ -131,7 +135,7 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
                 style={styles.deleteButton}
                 onPress={() => deleteStep(index)}
             >
-                <Icon name="delete" size={24} color={COLORS.error} />
+                <Icon name="delete" size={24} color={COLORS.error}/>
             </TouchableOpacity>
         </View>
     );
@@ -258,6 +262,15 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
             return;
         }
 
+        if (isIngredientUnitMissing()) {
+            Alert.alert(
+                'Erreur',
+                'Merci de choisir une unité pour chaque ingrédient.',
+                [{text: 'OK'}]
+            );
+            return;
+        }
+
         const success = await handleSaveRecipe(formData, navigation);
         if (success) {
             if (selectedRecipe) {
@@ -281,14 +294,15 @@ const AddOrEditRecipeScreen = ({navigation, route}) => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}>
                     <TouchableOpacity style={styles.imageContainer} onPress={selectImage}>
-                        {formData.image ? (
-                            <Image source={{uri: formData.image}} style={styles.image}/>
-                        ) : (
-                            <View style={styles.imagePlaceholder}>
-                                <Icon name="add-a-photo" size={40} color={COLORS.textLight}/>
-                                <Text style={styles.imagePlaceholderText}>Ajouter une photo</Text>
-                            </View>
-                        )}
+                        <Image
+                            source={formData.image ? { uri: formData.image } : require('../assets/recipe-default.jpg')}
+                            style={styles.image}
+                        />
+                        <View style={styles.overlay} />
+                        <View style={styles.imagePlaceholder}>
+                            <Icon name="add-a-photo" size={40} color={COLORS.textLight} />
+                            <Text style={styles.imagePlaceholderText}>Ajouter une photo</Text>
+                        </View>
                     </TouchableOpacity>
 
                     <View style={styles.form}>
@@ -495,13 +509,24 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface,
         justifyContent: 'center',
         alignItems: 'center',
+        position: 'relative', // Ensure the container is positioned relatively
     },
     image: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
     },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+    },
     imagePlaceholder: {
+        position: 'absolute', // Position the placeholder absolutely
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
         alignItems: 'center',
     },
     imagePlaceholderText: {

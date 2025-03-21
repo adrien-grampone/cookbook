@@ -6,7 +6,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
-    Modal,
     Share,
     Vibration,
     Platform,
@@ -18,6 +17,7 @@ import {COLORS, TYPOGRAPHY, SPACING, RADIUS} from "../styles/theme";
 import {useRecipes} from "../context/RecipeContext";
 import CategoryDisplay from "./CategoryDisplay";
 import ActionModal from "./ActionModal";
+import {StorageService} from "../utils/storage";
 
 const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
     const {handleDuplicateRecipe} = useRecipes();
@@ -86,11 +86,17 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
     };
 
     const handleShare = async () => {
-        setShowActionModal(false);
         try {
-            const shareMessage = `Découvre ma recette : ${recipe.name}${recipe.image ? `\nImage : ${recipe.image}` : ''}`;
+            const ingredients = recipe.ingredients
+                .map(ing => `- ${ing.amount} ${ing.unit} ${ing.name}`)
+                .join('\n');
+
+            const steps = recipe.steps
+                .map((step, index) => `${index + 1}. ${step.description}`)
+                .join('\n');
+
             await Share.share({
-                message: shareMessage,
+                message: `${recipe.name}\n\nIngrédients:\n${ingredients}\n\nPréparation:\n${steps}`,
                 title: recipe.name,
             });
         } catch (error) {
@@ -98,64 +104,14 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
         }
     };
 
-    /* const ActionModal = () => (
-         <Modal
-             animationType="none"
-             transparent={true}
-             visible={showActionModal}
-             onRequestClose={() => {
-                 setShowActionModal(false);
-                 endLongPressAnimation();
-             }}
-         >
-             <TouchableWithoutFeedback onPress={() => setShowActionModal(false)}>
-                 <Animated.View style={[styles.modalOverlay, {opacity: backgroundAnim}]}>
-                     <Animated.View style={[styles.modalContent, {transform: [{translateY: modalAnim.interpolate({
-                                 inputRange: [0, 1],
-                                 outputRange: [300, 0]
-                             })}]}]}>
-                         <View style={styles.modalHeader}>
-                             <Text style={styles.modalTitle}>{recipe.name.split(' ').slice(0, 4).join(' ')}</Text>
-                             <TouchableOpacity
-                                 style={styles.modalCloseButton}
-                                 onPress={() => setShowActionModal(false)}
-                             >
-                                 <Icon name="close" size={24} color={COLORS.text}/>
-                             </TouchableOpacity>
-                         </View>
-                         <View style={styles.modalContent}>
-                             <TouchableOpacity
-                                 style={styles.actionButton}
-                                 onPress={() => {
-                                     handleDuplicateRecipe(recipe);
-                                     setShowActionModal(false);
-                                 }}
-                             >
-                                 <Icon name="content-copy" size={22} color="#000"/>
-                                 <Text style={styles.actionText}>Dupliquer</Text>
-                             </TouchableOpacity>
-
-                             <TouchableOpacity
-                                 style={styles.actionButton}
-                                 onPress={handleShare}
-                             >
-                                 <Icon name="share" size={22} color="#000"/>
-                                 <Text style={styles.actionText}>Partager</Text>
-                             </TouchableOpacity>
-
-                             <TouchableOpacity
-                                 style={{...styles.actionButton, borderBottomWidth: 0}}
-                                 onPress={confirmDelete}
-                             >
-                                 <Icon name="delete" size={22} color="#FF453A"/>
-                                 <Text style={styles.deleteText}>Supprimer</Text>
-                             </TouchableOpacity>
-                         </View>
-                     </Animated.View>
-                 </Animated.View>
-             </TouchableWithoutFeedback>
-         </Modal>
-     );*/
+    const handleExport = async () => {
+        const success = await StorageService.exportRecipe(recipe.id);
+        if (success) {
+            alert('Exportation réussie !');
+        } else {
+            alert("Une erreur s'est produite.");
+        }
+    };
 
     return (
         <>
@@ -225,6 +181,7 @@ const RecipeCard = ({recipe, onPress, onEdit, onDelete}) => {
                         }
                     },
                     {label: 'Partager', icon: 'share', onPress: handleShare},
+                    {label: 'Exporter', icon: 'save', onPress: handleExport},
                     {label: 'Supprimer', icon: 'delete', color: '#FF453A', onPress: confirmDelete},
                 ]}
             />
