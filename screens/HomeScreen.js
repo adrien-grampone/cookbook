@@ -72,46 +72,6 @@ const HomeScreen = () => {
         navigation.navigate('RecipeDetail');
     };
 
-    const handleImport = async () => {
-        const success = await StorageService.importRecipes();
-        if (success) {
-            alert('Importation réussie !');
-        } else {
-            alert("Erreur lors de l'importation.");
-        }
-    };
-
-    let desc = '';
-
-    const fetchTikTokDescription = async () => {
-        const url = "https://www.tiktok.com/@joexfitness/video/7471249646854229291?_t=ZN-8txiZoJgw7S&_r=1";
-        const videoId = url.split('/').pop();
-
-        const options = {
-            method: 'GET',
-            url: 'https://tiktok-api23.p.rapidapi.com/api/post/detail',
-            params: {
-                videoId: videoId
-            },
-            headers: {
-                'x-rapidapi-key': '888b40bdafmsh5edb1371b01fc2dp17158djsn11b523888675',
-                'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com'
-            }
-        };
-
-        try {
-            const response = await axios.request(options);
-            const desc = response.data.itemInfo.itemStruct.desc;
-            console.log(desc);
-
-            const recipe = await generateRecipe(desc);
-
-            handleSaveRecipe(recipe, false);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     return (
         <AlertNotificationRoot>
             <KeyboardAvoidingView

@@ -4,7 +4,16 @@ const client = new OpenAI({
     apiKey: process.env.EXPO_PUBLIC_API_OPENAI_KEY
 });
 
-export const generateRecipe = async (description) => {
+export const generateRecipe = async (description, onProgress) => {
+
+    const startTime = Date.now(); // Temps de début
+    const estimatedTime = 8000; // Temps estimé en ms (ajuste si besoin)
+
+    const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / estimatedTime, 0.9); // Bloque à 90% max en attente de réponse
+        onProgress(progress);
+    }, 100);
 
     const prompt = `
     Voici une description de recette :
@@ -40,6 +49,10 @@ export const generateRecipe = async (description) => {
             messages: [{ role: 'user', content: prompt }],
             model: 'gpt-4o-mini',
         });
+
+        clearInterval(interval); // Stoppe la mise à jour de la barre
+        onProgress(1); // Remplit la barre à 100%
+
         let recipeString = response.choices[0].message.content.trim();
         recipeString = recipeString.replace(/^```json/, "").replace(/```$/, "").trim();
         console.log('recipeString', recipeString);
@@ -77,6 +90,8 @@ export const generateRecipe = async (description) => {
 
         return recipeObject;  // Convertir la réponse en objet JSON si ChatGPT fournit un format valide
     } catch (error) {
+        clearInterval(interval);
+        onProgress(0);
         Alert.alert('Erreur', 'Une erreur est survenue lors de la génération de la recette.');
     }
 };

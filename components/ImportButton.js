@@ -7,12 +7,15 @@ import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../styles/theme';
 import { generateRecipe } from "../utils/openai";
 import axios from "axios";
 import {StorageService} from "../utils/storage";
+import CookingLoader from "./CookingLoader";
+import * as FileSystem from 'expo-file-system';
 
 const ImportButton = () => {
     const [visible, setVisible] = useState(false);
     const [showTiktokInput, setShowTiktokInput] = useState(false);
     const [tiktokUrl, setTiktokUrl] = useState('');
-    const { handleSaveRecipe, setLoading } = useRecipes();
+    const { handleSaveRecipe, loading, setLoading } = useRecipes();
+    const [progress, setProgress] = useState(0);
 
     const showModal = () => {
         setVisible(true);
@@ -32,6 +35,37 @@ const ImportButton = () => {
         }
     };
 
+    const downloadImage = async (url) => {
+        try {
+            const fileUri = `${FileSystem.cacheDirectory}preview.jpg`; // Chemin local de stockage
+
+            // Télécharger l'image en utilisant fetch
+            const response = await fetch(url);
+
+            // Vérifier si la requête a réussi
+            if (!response.ok) {
+                throw new Error('Erreur lors du téléchargement de l\'image');
+            }
+
+            // Lire l'image sous forme de base64
+            const imageData = await response.blob();
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]); // Extraire la partie base64
+                reader.onerror = reject;
+                reader.readAsDataURL(imageData);
+            });
+
+            // Sauvegarder l'image en local
+            await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+
+            return fileUri; // Retourne le chemin local de l'image
+        } catch (error) {
+            console.error("Erreur lors du téléchargement de l'image :", error);
+            return null;
+        }
+    };
+
     const handleImportTikTok = async () => {
         if (!showTiktokInput) {
             setShowTiktokInput(true);
@@ -47,29 +81,51 @@ const ImportButton = () => {
                         text: 'OK',
                         onPress: async () => {
                             try {
-                                setLoading(true);  // Start loading
-                                const videoId = tiktokUrl.split('/').filter(Boolean).pop();
-                                console.log('videoId');
-                                console.log(videoId);
+                                setLoading(true);
+                                setProgress(0);
+                                let finalUrl = tiktokUrl;
+
+                                // Vérifier si c'est une URL raccourcie
+                                if (tiktokUrl.includes("vm.tiktok.com") || tiktokUrl.includes("vt.tiktok.com")) {
+                                    finalUrl = await resolveShortUrl(tiktokUrl);
+                                    if (!finalUrl) {
+                                        alert("Impossible de récupérer l'URL complète.");
+                                        setLoading(false);
+                                        return;
+                                    }
+                                }
+
+                                let videoId = extractTikTokVideoId(finalUrl);
+                                if (!videoId) {
+                                    alert("Impossible d'extraire l'ID de la vidéo. Vérifiez l'URL.");
+                                    setLoading(false);
+                                    return;
+                                }
+
+                                console.log('videoId:', videoId);
 
                                 const response = await axios.get('https://tiktok-api23.p.rapidapi.com/api/post/detail', {
-                                    params:{
-                                        videoId: videoId
-                                    },
+                                    params: { videoId },
                                     headers: {
-                                        'x-rapidapi-key': process.env.EXPO_PUBLIC_API_OPENAI_KEY,
+                                        'x-rapidapi-key': process.env.EXPO_PUBLIC_API_RAPIDAPI_KEY,
                                         'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com'
                                     }
                                 });
 
-
-                                const description = response.data.itemInfo.itemStruct.desc;
-                                const recipe = await generateRecipe(description);
+                                const preview = response.data.itemInfo?.itemStruct?.video?.cover;
+                                const description = response.data.itemInfo?.itemStruct?.desc || "";
+                                const recipe = await generateRecipe(description, setProgress);
+                                if (preview) {
+                                    const localImageUri = await downloadImage(preview);
+                                    if (localImageUri) {
+                                        recipe.image = localImageUri;
+                                    }
+                                }
                                 handleSaveRecipe(recipe, false);
                             } catch (error) {
                                 console.error(error);
                             } finally {
-                                setLoading(false);  // Stop loading
+                                setLoading(false); // Stop loading
                                 hideModal();
                             }
                         }
@@ -78,6 +134,36 @@ const ImportButton = () => {
             );
         }
     };
+
+// Fonction pour suivre la redirection de l'URL raccourcie
+    const resolveShortUrl = async (shortUrl) => {
+        try {
+            const response = await fetch(shortUrl, { method: 'HEAD', redirect: 'follow' });
+            return response.url; // Retourne l'URL complète après redirection
+        } catch (error) {
+            console.error("Erreur lors de la résolution de l'URL courte:", error);
+            return null;
+        }
+    };
+
+// Fonction pour extraire l'ID de la vidéo TikTok
+    const extractTikTokVideoId = (url) => {
+        try {
+            // Supprimer les paramètres après "?"
+            url = url.split("?")[0];
+
+            // Vérifier si l'URL contient "/video/"
+            let match = url.match(/\/video\/(\d+)/);
+            if (match) return match[1];
+
+            return null;
+        } catch (error) {
+            console.error("Erreur lors de l'extraction de l'ID TikTok:", error);
+            return null;
+        }
+    };
+
+
 
     const handleExport = async () => {
         const success = await StorageService.exportRecipes();
@@ -129,6 +215,8 @@ const ImportButton = () => {
                             />
                         )}
                     </View>
+
+                    <CookingLoader visible={loading} progress={progress}/>
                 </View>
             )}
 
